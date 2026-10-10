@@ -1,0 +1,5 @@
+1. **Indexes:** We created a compound index on `(emp_code, date)` to guarantee fast daily lookups and prevent duplicate logs. A partial index for active shifts was considered but rejected to keep schema management simple.
+2. **Punch-in race:** Two simultaneous punch-in requests are safely managed using a unique compound index on `(emp_code, date)`. MongoDB enforces this constraint, causing the second concurrent request to throw a duplicate key error rather than creating duplicate active logs.
+3. **Ties:** When employees tie on late minutes at the cutoff limit, our pipeline applies a secondary sort on `emp_code` to ensure deterministic, stable ranking results across queries.
+4. **Headcount:** Department summaries perform an outer join starting from the `employees` collection, ensuring that employees with zero attendance logs are still included with zeroed metrics.
+5. **100x scale:** We would introduce Redis caching for real-time punch validation to reduce database load and shard collections by `emp_code` for horizontal scalability.
